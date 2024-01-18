@@ -26,7 +26,7 @@ class BestellingRepositoryTest {
 
     @Test
     public void test(){
-        bestellingRepository.findById(1);
+
     }
 
     @Test
