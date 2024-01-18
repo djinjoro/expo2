@@ -6,7 +6,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.jdbc.JdbcTestUtils;
-import static org.assertj.core.api.Assertions.assertThat;
+
+import static org.assertj.core.api.Assertions.*;
 
 
 @JdbcTest
@@ -37,7 +38,42 @@ class BestellingRepositoryTest {
     @Test
     void findByIdGeeftDeCorrecteNaam() {
         assertThat(bestellingRepository.findById(idVanBestelling())).hasValueSatisfying(
-                festival -> assertThat(festival.getNaam()).isEqualTo("jos"));
+                bestelling -> assertThat(bestelling.getNaam()).isEqualTo("jos"));
     }
-
+    @Test
+    void findByOnbestaandIdGeeftFoutmelding(){
+        assertThat(bestellingRepository.findById(Integer.MAX_VALUE)).isEmpty();
+    }
+    @Test
+    void findAndLockByIdMetCorrecteIdWerkt(){
+        assertThat(bestellingRepository.findAndLockById(idVanBestelling())).hasValueSatisfying(
+                bestelling -> assertThat(bestelling.getNaam()).isEqualTo("jos"));
+    }
+    @Test
+    void findAndLockByIdMetIncorrecteIdWerktNiet(){
+        assertThat(bestellingRepository.findAndLockById(Integer.MAX_VALUE)).isEmpty();
+    }
+    @Test
+    void deleteVerwijdertBestelling(){
+        var id = idVanBestelling();
+        bestellingRepository.delete(id);
+        var aantalRecordsMetIdVanVerwijderdeBestelling = JdbcTestUtils.countRowsInTableWhere(jdbcClient, BESTELLINGEN_TABLE, "id =" + id);
+        assertThat(aantalRecordsMetIdVanVerwijderdeBestelling).isZero();
+    }
+    @Test
+    void createVoegtBestellingToe(){
+        var id = bestellingRepository.create(new Bestelling(30, "test99", 2));
+        assertThat(id).isPositive();
+        var aantalRecordsMetIdVanToegevoegdeBestelling = JdbcTestUtils.countRowsInTableWhere(jdbcClient, BESTELLINGEN_TABLE, "id =" + id);
+        assertThat(aantalRecordsMetIdVanToegevoegdeBestelling).isOne();
+    }
+    @Test
+    void UpdateWijzigtEenMens(){
+        var id = idVanBestelling();
+        var bestelling = new Bestelling(id, "Ace", 2);
+        bestellingRepository.update(bestelling);
+        var aantalAangepasteRecords = JdbcTestUtils.countRowsInTableWhere(
+                jdbcClient, BESTELLINGEN_TABLE, "naam = 'Ace' and id = " + id);
+                assertThat(aantalAangepasteRecords).isOne();
+    }
 }
