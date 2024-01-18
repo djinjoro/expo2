@@ -16,6 +16,7 @@ public class BestellingRepository {
         this.jdbcClient = jdbcClient;
     }
 
+
     public Optional<Bestelling> findById(int id) {
         try {
             var sql = """
@@ -27,16 +28,16 @@ public class BestellingRepository {
                     .param(id)
                     .query(Bestelling.class)
                     .optional();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        }catch (Exception e){
+            throw new RuntimeException(e);
         }
-    }
+        }
 
     public Optional<Bestelling> findAndLockById(int id) {
         try {
             var sql = """
                     select id, naam, ticketType
-                    from Bestelling
+                    from Bestellingen
                     where id = ?
                     for update
                     """;
@@ -52,8 +53,8 @@ public class BestellingRepository {
     public List<Bestelling> findAll() {
         var sql = """
                 select id, naam, ticketType
-                from Bestelling
-                order by id
+                from Bestellingen
+                order by naam
                 """;
         return jdbcClient.sql(sql)
                 .query(Bestelling.class)
@@ -62,7 +63,7 @@ public class BestellingRepository {
 
     public void delete(int id) {
         var sql = """
-                delete from Bestelling
+                delete from Bestellingen
                 where id = ?
                 """;
         jdbcClient.sql(sql)
@@ -72,7 +73,7 @@ public class BestellingRepository {
 
     public void update(Bestelling bestelling) {
         var sql = """
-                update Bestelling
+                update Bestellingen
                 set naam = ?, ticketType = ?
                 where id = ?
                 """;
